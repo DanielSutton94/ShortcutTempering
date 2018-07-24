@@ -1,0 +1,35 @@
+#Calls the target distribution. Can be a multivariate model
+#This should be generalised so that users can enter targets and steps more easily
+temperature <- function(x, lambdaVal){
+  return((dnorm(x,0,1))^lambdaVal)
+}
+
+stepFunction <- function(lambda){
+  return(rnorm(1,0,1/lambda))
+}
+
+
+
+#Metropolis Algorithm (Univariate)
+Metropolis.Step <- function(xt, lambdaVal){
+  z <- stepFunction(lambda)
+  y <- xt + z
+  alpha <- temperature(y,lambdaVal)/temperature(xt, lambdaVal)
+  
+  
+  if (runif(1,0,1) < alpha){return(y)}
+  else {return(xt)}
+}
+
+
+
+#Guided Metropolis Algorithm (Univariate)
+Metropolis.Step.G <- function(xt, lambdaVal, p){
+  z <- abs(stepFunction(lambda))
+  y <- xt + p*z
+  alpha <- temperature(y,lambdaVal)/temperature(xt, lambdaVal)
+  
+  
+  if (runif(1,0,1) < alpha){return(c(y,p))}
+  else {return(c(xt,-p))}
+}
