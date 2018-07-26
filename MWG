@@ -1,0 +1,39 @@
+
+
+
+Metropolis.Within.Gibbs <- function(n, start){
+  
+  dim <- length(start)
+  
+  #Initialise data frame to hold samples
+  x <- as.data.frame(matrix(start, ncol = dim))
+  colnames(x) <- paste("x",1:dim, sep = "")
+
+  for (i in 2:n){
+
+    xCurr <- x[i-1,]
+    
+    for (j in 1:dim){
+      
+      prop <- xCurr
+      prop[j] <- prop[j] + stepFunction()
+      
+      alpha <- temperature(prop)/temperature(xCurr)
+      if (runif(1,0,1) < alpha){xCurr <- prop}
+      
+    }
+    x[i,] <- xCurr
+    
+  }
+  
+  return(x)
+  
+}
+
+
+MWG.ErrorCatch <- function(n, start){
+  
+  
+  
+}
+
