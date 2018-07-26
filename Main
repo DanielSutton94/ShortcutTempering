@@ -1,113 +1,59 @@
-#Define Temperatures. p0,...,pn
-temperature <- function(x,lambda){
-  return((dnorm(x,-8,1) + dnorm(x,8,1))^lambda)
+
+
+
+#This is the main algorithm to call
+
+guidedMCMC <- function(n, lambda, start, algorithm, dim = 1){
+  
+
+  #Check inputs for errors
+  initialErrorCatch(n, lambda, start, algorithm)
+  
+  
+  if (algorithm == "Metropolis"){
+    
+    if (length(start) != 1){warning("Metropolis Algorithm is univariate. Please adjust start to have length 1.")}
+    if (length(lambda) != 1){warning("Metropolis Algorithm is not a tempering algorithm. Lambda will be set to 1.")}
+    
+    simulations <- Metropolis(n, start)
+    
+    
+    
+  }
+  
+  else if (algorithm == "MWG"){
+    
+    simulations <- Metropolis.Within.Gibbs(n, start)
+    
+  }
+  
+  
+  
+  
+  
+  else if (algorithm == "guidedMetropolis"){
+    
+    stop("Guided Metropolis Algorithm is not yet complete")
+    
+  }
+  
+  else {stop("Algorithm not recongnised. Please choose from 'Metropolis', 'guidedMetropolis")}
+  
+  
+  return(simulations)
+  
 }
 
 
 
-Metropolis.Step <- function(xt,lambda){
-  #z <- rnorm(1,0,1/(sqrt(lambda)))
-  z <- rnorm(1,0,1/sqrt(lambda))
-  y <- xt + z
-  alpha <- min(1, temperature(y,lambda)/temperature(xt,lambda))
-  change <- rbinom(1, 1, alpha)
+#Catch errors on input parameters
+initialErrorCatch <- function(n, lambda, start, algorithm){
   
-  if (change == 1) {
-    return(y)
-  }	else {
-    return(xt)
-  }
+  if (n%%1 != 0){stop("n is the number of samples and must be a positive integer")}
+  if (n < 2){stop("n must be greater than one.")}
+  
+  
+
+  #Need to test the inputs here to ensure they are fine
+  # Length of start must match dimension of model
 }
-
-
-Shortcut.Transitions <- function(n,lambda, pi,t){
-  
-  
-  w <- rep(0,n) #Homogeneous Markov Chain with samples from target
-  xhat <- rep(0,4) #Inhomogeneous Markov Chain
-  w[1] <- runif(1,-4,4) # Starting Position
-  x <- w[1] #Current position
-  
-  l <- 2 #Count for chain with only target
-  i <- 0 #Indexing for temperature. 0 is target distribution
-  
-  #Loop for target distribution chain
-  while (l<n+1){
-    print(l)
-    #Algorithm for target temperature
-    if (i==0){
-      
-      #Begin with Metropolis Random Walk Step
-      x <- Metropolis.Step(x,lambda[1])
-      w[l] <- x
-      l <- l+1
-
-        
-      #Now attempt to chain temperature
-      temp.change <- rbinom(1,1,t[1])
-      
-      #Part Tempered Transitions Step
-      if (temp.change == 1){
-        
-        xzero <- x
-        
-        #Generate xhat's
-        xhat[1] <- Metropolis.Step(xzero,lambda[2])
-        xhat[2] <- Metropolis.Step(xhat[1],lambda[3])
-        xhat[3] <- Metropolis.Step(xhat[2],lambda[4])
-        xhat[4] <- Metropolis.Step(xhat[3],lambda[5])
-        
-        #Acceptance Probability
-        numerator <- temperature(xzero,lambda[2])*temperature(xhat[1],lambda[3])*temperature(xhat[2],lambda[4])*temperature(xhat[3],lambda[5])*pi[2]*t[2]
-        denominator <- temperature(xzero,lambda[1])*temperature(xhat[1],lambda[2])*temperature(xhat[2],lambda[3])*temperature(xhat[3],lambda[4])*pi[1]*t[1]
-        alpha <- min(1, numerator/denominator)
-        
-        if(rbinom(1,1,alpha)==1){
-          x <- xhat[4]
-          i <- 1
-         }
-        
-      }
-    }
-    
-      
-    
-    
-    #Algorithm for hottest temperature
-    else if (i==1){
-      #Begin with Metropolis Random Walk Step
-      x <- Metropolis.Step(x,lambda[5])
-
-        #Now attempt to chain temperature
-        temp.change <- rbinom(1,1,t[2])
-        
-        #Part Tempered Transitions Step
-        if (temp.change == 1){
-          
-          xhat[4] <- x
-          #Generate xhat's.
-          xhat[3] <- Metropolis.Step(xhat[4],lambda[5])
-          xhat[2] <- Metropolis.Step(xhat[3],lambda[4])
-          xhat[1] <- Metropolis.Step(xhat[2],lambda[3])
-          xzero <- Metropolis.Step(xhat[1],lambda[2])
-          
-          #Acceptance Probability
-          numerator <- temperature(xzero,lambda[2])*temperature(xhat[1],lambda[3])*temperature(xhat[2],lambda[4])*temperature(xhat[3],lambda[5])*pi[2]*t[2]
-          denominator <- temperature(xzero,lambda[1])*temperature(xhat[1],lambda[2])*temperature(xhat[2],lambda[3])*temperature(xhat[3],lambda[4])*pi[1]*t[1]
-          alpha <- min(1, denominator/numerator) #Recipricol
-          #i <- 1 - rbinom(1, 1, alpha)
-          #i <- rbinom(1, 1, alpha)
-          if(rbinom(1,1,alpha)==1){
-            x <- xzero
-            w[l] <- x
-            l <- l + 1
-            i <- 0
-            }
-          
-        }
-    }
-  }
-  
-  return(w)
-  
-  }
