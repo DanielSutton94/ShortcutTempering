@@ -1,0 +1,15 @@
+#Guided Metropolis Algorithm
+Metropolis.Guided <- function(n, start = 0, lambda = 1){
+  
+  x <- rep(0,n)
+  x[1] <- start
+  
+  p <- sign(runif(1,-1,1)) #Initialise trajectory
+  
+  for (i in 2:n){
+    hold <- Metropolis.Step.G(x[i-1],1,p)
+    x[i] <- hold[1]
+    p <- hold[2]
+  }
+  return(x)
+}
