@@ -33,7 +33,7 @@ guidedMCMC <- function(n, lambda, start, algorithm, dim = 1){
   
   else if (algorithm == "guidedMetropolis"){
     
-    stop("Guided Metropolis Algorithm is not yet complete")
+    simulations <- Metropolis.Guided(n, start, 1)
     
   }
   
