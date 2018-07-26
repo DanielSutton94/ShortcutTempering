@@ -1,0 +1,16 @@
+
+
+
+Metropolis <- function(n, start = 0, lambda = 1){
+  
+  x <- rep(0,n)
+  x[1] <- start
+  
+  for (i in 2:n){
+    x[i] <- Metropolis.Step(x[i-1],1)
+  }
+  return(x)
+}
+
+
+
