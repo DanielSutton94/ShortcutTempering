@@ -1,0 +1,32 @@
+
+
+Metropolis.Within.Gibbs.G <- function(n, start){
+  
+  dim <- length(start)
+  
+  p <- sign(runif(3,-1,1))
+  
+  #Initialise data frame to hold samples
+  x <- as.data.frame(matrix(c(p,start), ncol = dim, byrow = TRUE))
+  colnames(x) <- paste("x",1:dim, sep = "")
+  
+  for (i in 3:n){
+    
+    xt <- x[i-1,]
+    
+    hold <- MWG.Step.G(xt, dim, x[1,])
+    x[i,] <- hold[2,]
+    x[1,] <- hold[1,]
+    
+  }
+  
+  return(x[-1,])
+  
+}
+
+
+MWG.ErrorCatch.G <- function(n, start){
+  
+  
+  
+}
