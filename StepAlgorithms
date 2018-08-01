@@ -1,18 +1,26 @@
-#Calls the target distribution. Can be a multivariate model
-#This should be generalised so that users can enter targets and steps more easily
-temperature <- function(x, lambdaVal){
+
+#Calls the target distribution. Can be a multivariate model.
+temperature <- function(x, lambdaVal = 1){
   return((dnorm(x,0,1))^lambdaVal)
 }
 
-stepFunction <- function(lambda){
-  return(rnorm(1,0,1/lambda))
+stepFunction <- function(lambdaVal = 1){
+  return(rnorm(1,0,1/lambdaVal)) 
 }
 
+###########
+## Section for step functions
+###########
 
+#Metropolis, Metropolis-Hastings (Guided and Not)
+
+
+#Lambda 1 must be 1
+#Lambda must decrease
 
 #Metropolis Algorithm (Univariate)
 Metropolis.Step <- function(xt, lambdaVal){
-  z <- stepFunction(lambda)
+  z <- stepFunction(lambdaVal)
   y <- xt + z
   alpha <- temperature(y,lambdaVal)/temperature(xt, lambdaVal)
   
@@ -20,8 +28,6 @@ Metropolis.Step <- function(xt, lambdaVal){
   if (runif(1,0,1) < alpha){return(y)}
   else {return(xt)}
 }
-
-
 
 #Guided Metropolis Algorithm (Univariate)
 Metropolis.Step.G <- function(xt, lambdaVal, p){
@@ -32,4 +38,42 @@ Metropolis.Step.G <- function(xt, lambdaVal, p){
   
   if (runif(1,0,1) < alpha){return(c(y,p))}
   else {return(c(xt,-p))}
+}
+
+##Might need a reverse = FALSE (for Tempered Transitions and Shortcut tempering)
+
+#Metropolis Within Gibbs step
+MWG.Step <- function(xt, dim){
+  
+  for (j in 1:dim){
+    
+    prop <- xt
+    prop[j] <- prop[j] + stepFunction()
+    
+    alpha <- temperature(prop)/temperature(xt)
+    if (runif(1,0,1) < alpha){xt <- prop}
+    
+  }
+  
+  return(xt)
+  
+}
+
+
+#Guided Metropolis Withing Gibbs step
+MWG.Step.G <- function(xt, dim, p){
+  
+  for (j in 1:dim){
+    
+    prop <- xt
+    prop[j] <- prop[j] + p[j]* abs(stepFunction())
+    
+    alpha <- temperature(prop)/temperature(xt)
+    if (runif(1,0,1) < alpha){xt <- prop}
+    else {p[j] <- -p[j]}
+    
+  }
+  
+  return(rbind(p,xt))
+  
 }
